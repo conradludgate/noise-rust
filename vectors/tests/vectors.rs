@@ -3,11 +3,11 @@
 // Recommanded to run with:
 // $ RUST_BACKTRACE=1 cargo test  -- --nocapture --test-threads=1
 
+use cl_noise_protocol as noise;
 use hex::{decode, encode};
 use lazy_static::lazy_static;
 use noise::patterns::*;
 use noise::*;
-use noise_protocol as noise;
 use noise_ring as ring_crypto;
 use noise_rust_crypto as crypto;
 use rayon::prelude::*;

@@ -2,7 +2,7 @@
 
 pub mod sensitive;
 
-use noise_protocol::{Cipher, Hash, Unspecified};
+use cl_noise_protocol::{Cipher, Hash, Unspecified};
 use ring::{
     aead::{self, LessSafeKey, UnboundKey},
     digest,

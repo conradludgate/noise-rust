@@ -12,6 +12,6 @@ description = "Ring wrappers for nosie-protocol."
 ring = "0.17"
 zeroize = "1"
 
-[dependencies.noise-protocol]
+[dependencies.cl-noise-protocol]
 path = "../noise-protocol"
 version = "0.2.0-rc.1"

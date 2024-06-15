@@ -73,7 +73,6 @@ impl core::fmt::Display for Unspecified {
 #[cfg(feature = "std")]
 impl std::error::Error for Unspecified {}
 
-
 /// A DH.
 pub trait DH {
     /// Type of private key.

@@ -1,6 +1,8 @@
 //! Rust implementation of the [Noise Protocol
 //! Framework](http://www.noiseprotocol.org/).
 //!
+//! Fork of `noise-protocol`.
+//!
 //! # Basic Usage
 //!
 //! Initialize a [`HandshakeState`] with [`HandshakeState::new`] or
@@ -36,7 +38,7 @@ extern crate alloc;
 extern crate std;
 
 pub use crate::cipherstate::CipherState;
-pub use crate::traits::{Cipher, Hash, U8Array, DH, Unspecified};
+pub use crate::traits::{Cipher, Hash, U8Array, Unspecified, DH};
 
 /// Handshake patterns.
 pub mod patterns {

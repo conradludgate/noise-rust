@@ -15,7 +15,7 @@ pub mod sensitive;
 
 use sensitive::Sensitive;
 
-use noise_protocol::*;
+use cl_noise_protocol::{Cipher, Hash, U8Array, Unspecified, DH};
 #[cfg(feature = "x25519")]
 use x25519_dalek::{PublicKey, StaticSecret};
 
