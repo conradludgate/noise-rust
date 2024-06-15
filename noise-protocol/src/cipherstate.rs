@@ -1,4 +1,4 @@
-use crate::traits::{Cipher, U8Array};
+use crate::traits::{Cipher, Unspecified};
 
 #[cfg(feature = "use_alloc")]
 use alloc::vec::Vec;
@@ -84,7 +84,7 @@ where
         authtext: &[u8],
         ciphertext: &[u8],
         out: &mut [u8],
-    ) -> Result<(), ()> {
+    ) -> Result<(), Unspecified> {
         let r = C::decrypt(&self.key, self.n, authtext, ciphertext, out);
         #[cfg(feature = "use_std")]
         if option_env!("NOISE_RUST_TEST_IN_PLACE").is_some() {
@@ -106,7 +106,7 @@ where
         authtext: &[u8],
         in_out: &mut [u8],
         ciphertext_len: usize,
-    ) -> Result<usize, ()> {
+    ) -> Result<usize, Unspecified> {
         let size = C::decrypt_in_place(&self.key, self.n, authtext, in_out, ciphertext_len)?;
         self.n = self.n.checked_add(1).unwrap();
         Ok(size)
@@ -131,7 +131,7 @@ where
     }
 
     /// Decryption.
-    pub fn decrypt(&mut self, ciphertext: &[u8], out: &mut [u8]) -> Result<(), ()> {
+    pub fn decrypt(&mut self, ciphertext: &[u8], out: &mut [u8]) -> Result<(), Unspecified> {
         self.decrypt_ad(&[0u8; 0], ciphertext, out)
     }
 
@@ -140,15 +140,15 @@ where
         &mut self,
         in_out: &mut [u8],
         ciphertext_len: usize,
-    ) -> Result<usize, ()> {
+    ) -> Result<usize, Unspecified> {
         self.decrypt_ad_in_place(&[0u8; 0], in_out, ciphertext_len)
     }
 
     /// Decryption, returns plaintext as `Vec<u8>`.
     #[cfg(any(feature = "use_std", feature = "use_alloc"))]
-    pub fn decrypt_vec(&mut self, ciphertext: &[u8]) -> Result<Vec<u8>, ()> {
+    pub fn decrypt_vec(&mut self, ciphertext: &[u8]) -> Result<Vec<u8>, Unspecified> {
         if ciphertext.len() < 16 {
-            return Err(());
+            return Err(Unspecified);
         }
         let mut out = vec![0u8; ciphertext.len() - 16];
         self.decrypt(ciphertext, &mut out)?;

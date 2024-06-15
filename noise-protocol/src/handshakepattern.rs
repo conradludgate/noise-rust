@@ -82,12 +82,9 @@ impl HandshakePattern {
 
     /// Whether there are any psk tokens in this pattern.
     pub fn has_psk(&self) -> bool {
-        self.msg_patterns.iter().any(|m| {
-            m.iter().any(|m| match m {
-                Token::PSK => true,
-                _ => false,
-            })
-        })
+        self.msg_patterns
+            .iter()
+            .any(|m| m.iter().any(|m| matches!(m, Token::PSK)))
     }
 
     /// Whether the pattern is a one-way pattern.

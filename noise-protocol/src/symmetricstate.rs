@@ -1,5 +1,5 @@
 use crate::cipherstate::CipherState;
-use crate::traits::{Cipher, Hash, U8Array};
+use crate::traits::{Cipher, Hash, U8Array, Unspecified};
 
 pub struct SymmetricState<C: Cipher, H: Hash> {
     // Instead of `has_key`, use an `Option`.
@@ -78,7 +78,7 @@ where
         self.mix_hash(out);
     }
 
-    pub fn decrypt_and_hash(&mut self, data: &[u8], out: &mut [u8]) -> Result<(), ()> {
+    pub fn decrypt_and_hash(&mut self, data: &[u8], out: &mut [u8]) -> Result<(), Unspecified> {
         if let Some(ref mut c) = self.cipherstate {
             c.decrypt_ad(self.h.as_slice(), data, out)?;
         } else {

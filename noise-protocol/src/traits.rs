@@ -59,6 +59,21 @@ impl_array!(32);
 impl_array!(64);
 impl_array!(128);
 
+/// An unspecified cryptographic error occured
+#[derive(PartialEq, Copy, Clone, Debug)]
+pub struct Unspecified;
+
+// This is required for the implementation of `std::error::Error`.
+impl core::fmt::Display for Unspecified {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        f.write_str("ring::error::Unspecified")
+    }
+}
+
+#[cfg(feature = "use_std")]
+impl std::error::Error for Unspecified {}
+
+
 /// A DH.
 pub trait DH {
     /// Type of private key.
@@ -78,7 +93,7 @@ pub trait DH {
     fn pubkey(_: &Self::Key) -> Self::Pubkey;
 
     /// Perform DH key exchange.
-    fn dh(_: &Self::Key, _: &Self::Pubkey) -> Result<Self::Output, ()>;
+    fn dh(_: &Self::Key, _: &Self::Pubkey) -> Result<Self::Output, Unspecified>;
 }
 
 /// An AEAD.
@@ -91,6 +106,11 @@ pub trait Cipher {
     /// Length of key.
     fn key_len() -> usize;
 
+    /// Create a new key from a slice.
+    ///
+    /// # Panics
+    ///
+    /// The slice len must be equal to key_len.
     fn key_from_slice(b: &[u8]) -> Self::Key;
 
     /// Length of auth tag.
@@ -132,7 +152,7 @@ pub trait Cipher {
         ad: &[u8],
         ciphertext: &[u8],
         out: &mut [u8],
-    ) -> Result<(), ()>;
+    ) -> Result<(), Unspecified>;
 
     /// AEAD decryption, but decrypt on one buffer.
     /// return the length of plaintext.
@@ -146,7 +166,7 @@ pub trait Cipher {
         ad: &[u8],
         in_out: &mut [u8],
         ciphertext_len: usize,
-    ) -> Result<usize, ()>;
+    ) -> Result<usize, Unspecified>;
 
     /// Rekey. Returns a new cipher key as a pseudorandom function of `k`.
     fn rekey(k: &Self::Key) -> Self::Key {

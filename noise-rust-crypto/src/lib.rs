@@ -41,7 +41,7 @@ impl DH for X25519 {
         *PublicKey::from(&static_secret).as_bytes()
     }
 
-    fn dh(k: &Self::Key, pk: &Self::Pubkey) -> Result<Self::Output, ()> {
+    fn dh(k: &Self::Key, pk: &Self::Pubkey) -> Result<Self::Output, Unspecified> {
         let k = StaticSecret::from(**k);
         let pk = PublicKey::from(*pk);
         Ok(Self::Output::from_slice(k.diffie_hellman(&pk).as_bytes()))
@@ -115,7 +115,7 @@ impl Cipher for ChaCha20Poly1305 {
         ad: &[u8],
         ciphertext: &[u8],
         out: &mut [u8],
-    ) -> Result<(), ()> {
+    ) -> Result<(), Unspecified> {
         assert!(ciphertext.len().checked_sub(16) == Some(out.len()));
 
         let mut full_nonce = [0u8; 12];
@@ -127,7 +127,7 @@ impl Cipher for ChaCha20Poly1305 {
         use chacha20poly1305::{AeadInPlace, KeyInit};
         chacha20poly1305::ChaCha20Poly1305::new(&(**k).into())
             .decrypt_in_place_detached(&full_nonce.into(), ad, out, tag.into())
-            .map_err(|_| ())
+            .map_err(|_| Unspecified)
     }
 
     fn decrypt_in_place(
@@ -136,7 +136,7 @@ impl Cipher for ChaCha20Poly1305 {
         ad: &[u8],
         in_out: &mut [u8],
         ciphertext_len: usize,
-    ) -> Result<usize, ()> {
+    ) -> Result<usize, Unspecified> {
         assert!(ciphertext_len <= in_out.len());
         assert!(ciphertext_len >= 16);
 
@@ -148,7 +148,7 @@ impl Cipher for ChaCha20Poly1305 {
         use chacha20poly1305::{AeadInPlace, KeyInit};
         chacha20poly1305::ChaCha20Poly1305::new(&(**k).into())
             .decrypt_in_place_detached(&full_nonce.into(), ad, in_out, tag.as_ref().into())
-            .map_err(|_| ())?;
+            .map_err(|_| Unspecified)?;
 
         Ok(in_out.len())
     }
@@ -221,7 +221,7 @@ impl Cipher for Aes256Gcm {
         ad: &[u8],
         ciphertext: &[u8],
         out: &mut [u8],
-    ) -> Result<(), ()> {
+    ) -> Result<(), Unspecified> {
         assert!(ciphertext.len().checked_sub(16) == Some(out.len()));
 
         let mut full_nonce = [0u8; 12];
@@ -233,7 +233,7 @@ impl Cipher for Aes256Gcm {
         use aes_gcm::{AeadInPlace, KeyInit};
         aes_gcm::Aes256Gcm::new(&(**k).into())
             .decrypt_in_place_detached(&full_nonce.into(), ad, out, tag.into())
-            .map_err(|_| ())
+            .map_err(|_| Unspecified)
     }
 
     fn decrypt_in_place(
@@ -242,7 +242,7 @@ impl Cipher for Aes256Gcm {
         ad: &[u8],
         in_out: &mut [u8],
         ciphertext_len: usize,
-    ) -> Result<usize, ()> {
+    ) -> Result<usize, Unspecified> {
         assert!(ciphertext_len <= in_out.len());
         assert!(ciphertext_len >= 16);
 
@@ -254,7 +254,7 @@ impl Cipher for Aes256Gcm {
         use aes_gcm::{AeadInPlace, KeyInit};
         aes_gcm::Aes256Gcm::new(&(**k).into())
             .decrypt_in_place_detached(&full_nonce.into(), ad, in_out, tag.as_ref().into())
-            .map_err(|_| ())?;
+            .map_err(|_| Unspecified)?;
 
         Ok(in_out.len())
     }

@@ -69,7 +69,7 @@ fn gen<O: Write>(mut out: O) -> ::std::io::Result<()> {
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("crypto_impls.rs");
-    let out_file = File::create(&dest_path).unwrap();
+    let out_file = File::create(dest_path).unwrap();
 
     gen(out_file).unwrap();
 }

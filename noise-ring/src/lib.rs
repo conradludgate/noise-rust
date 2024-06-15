@@ -2,7 +2,7 @@
 
 pub mod sensitive;
 
-use noise_protocol::{Cipher, Hash};
+use noise_protocol::{Cipher, Hash, Unspecified};
 use ring::{
     aead::{self, LessSafeKey, UnboundKey},
     digest,
@@ -135,7 +135,7 @@ impl Cipher for ChaCha20Poly1305 {
         ad: &[u8],
         ciphertext: &[u8],
         out: &mut [u8],
-    ) -> Result<(), ()> {
+    ) -> Result<(), Unspecified> {
         assert!(ciphertext.len().checked_sub(TAGLEN) == Some(out.len()));
 
         let mut nonce_bytes = [0u8; 12];
@@ -146,7 +146,7 @@ impl Cipher for ChaCha20Poly1305 {
 
         let out0 = key
             .open_in_place(nonce, aead::Aad::from(ad), &mut in_out)
-            .map_err(|_| ())?;
+            .map_err(|_| Unspecified)?;
 
         out[..out0.len()].copy_from_slice(out0);
         Ok(())
@@ -158,7 +158,7 @@ impl Cipher for ChaCha20Poly1305 {
         ad: &[u8],
         in_out: &mut [u8],
         ciphertext_len: usize,
-    ) -> Result<usize, ()> {
+    ) -> Result<usize, Unspecified> {
         assert!(ciphertext_len <= in_out.len());
         assert!(ciphertext_len >= TAGLEN);
 
@@ -167,7 +167,7 @@ impl Cipher for ChaCha20Poly1305 {
         let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
 
         key.open_in_place(nonce, aead::Aad::from(ad), &mut in_out[..ciphertext_len])
-            .map_err(|_| ())?;
+            .map_err(|_| Unspecified)?;
 
         Ok(ciphertext_len - TAGLEN)
     }
@@ -236,7 +236,7 @@ impl Cipher for Aes256Gcm {
         ad: &[u8],
         ciphertext: &[u8],
         out: &mut [u8],
-    ) -> Result<(), ()> {
+    ) -> Result<(), Unspecified> {
         assert!(ciphertext.len().checked_sub(TAGLEN) == Some(out.len()));
 
         let mut nonce_bytes = [0u8; 12];
@@ -247,7 +247,7 @@ impl Cipher for Aes256Gcm {
 
         let out0 = key
             .open_in_place(nonce, aead::Aad::from(ad), &mut in_out)
-            .map_err(|_| ())?;
+            .map_err(|_| Unspecified)?;
 
         out[..out0.len()].copy_from_slice(out0);
         Ok(())
@@ -259,7 +259,7 @@ impl Cipher for Aes256Gcm {
         ad: &[u8],
         in_out: &mut [u8],
         ciphertext_len: usize,
-    ) -> Result<usize, ()> {
+    ) -> Result<usize, Unspecified> {
         assert!(ciphertext_len <= in_out.len());
         assert!(ciphertext_len >= TAGLEN);
 
@@ -268,7 +268,7 @@ impl Cipher for Aes256Gcm {
         let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
 
         key.open_in_place(nonce, aead::Aad::from(ad), &mut in_out[..ciphertext_len])
-            .map_err(|_| ())?;
+            .map_err(|_| Unspecified)?;
 
         Ok(ciphertext_len - TAGLEN)
     }

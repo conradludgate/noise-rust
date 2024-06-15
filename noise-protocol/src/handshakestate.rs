@@ -1,7 +1,7 @@
 use crate::cipherstate::CipherState;
 use crate::handshakepattern::{HandshakePattern, Token};
 use crate::symmetricstate::SymmetricState;
-use crate::traits::{Cipher, Hash, U8Array, DH};
+use crate::traits::{Cipher, Hash, U8Array, Unspecified, DH};
 use arrayvec::{ArrayString, ArrayVec};
 use core::fmt::{Display, Error as FmtError, Formatter, Write};
 
@@ -440,7 +440,7 @@ where
         self.message_index % 2 == if self.is_initiator { 0 } else { 1 }
     }
 
-    fn perform_dh(&self, t: Token) -> Result<D::Output, ()> {
+    fn perform_dh(&self, t: Token) -> Result<D::Output, Unspecified> {
         let dh = |a: Option<&D::Key>, b: Option<&D::Pubkey>| D::dh(a.unwrap(), b.unwrap());
 
         match t {
