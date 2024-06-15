@@ -36,10 +36,9 @@ impl Hash for Sha256 {
         self.context.update(data);
     }
 
-    fn result(&mut self) -> Self::Output {
+    fn result(self) -> Self::Output {
         let mut out = [0u8; 32];
-        // XXX have to clone becuase finish() moves Context.
-        out.copy_from_slice(self.context.clone().finish().as_ref());
+        out.copy_from_slice(self.context.finish().as_ref());
         out
     }
 }
@@ -64,9 +63,9 @@ impl Hash for Sha512 {
         self.context.update(data);
     }
 
-    fn result(&mut self) -> Self::Output {
+    fn result(self) -> Self::Output {
         let mut out = [0u8; 64];
-        out.copy_from_slice(self.context.clone().finish().as_ref());
+        out.copy_from_slice(self.context.finish().as_ref());
         out
     }
 }

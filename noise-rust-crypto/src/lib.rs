@@ -278,9 +278,9 @@ impl Hash for Sha256 {
         self.0.update(data);
     }
 
-    fn result(&mut self) -> Self::Output {
+    fn result(self) -> Self::Output {
         use sha2::Digest;
-        Self::Output::from_slice(self.0.finalize_reset().as_ref())
+        Self::Output::from_slice(self.0.finalize().as_ref())
     }
 }
 
@@ -302,9 +302,9 @@ impl Hash for Sha512 {
         self.0.update(data);
     }
 
-    fn result(&mut self) -> Self::Output {
+    fn result(self) -> Self::Output {
         use sha2::Digest;
-        Self::Output::from_slice(self.0.finalize_reset().as_ref())
+        Self::Output::from_slice(self.0.finalize().as_ref())
     }
 }
 
@@ -326,9 +326,9 @@ impl Hash for Blake2s {
         self.0.update(data);
     }
 
-    fn result(&mut self) -> Self::Output {
+    fn result(self) -> Self::Output {
         use blake2::Digest;
-        Self::Output::from_slice(self.0.finalize_reset().as_ref())
+        Self::Output::from_slice(self.0.finalize().as_ref())
     }
 }
 
@@ -350,8 +350,8 @@ impl Hash for Blake2b {
         self.0.update(data);
     }
 
-    fn result(&mut self) -> Self::Output {
+    fn result(self) -> Self::Output {
         use blake2::Digest;
-        Self::Output::from_slice(self.0.finalize_reset().as_ref())
+        Self::Output::from_slice(self.0.finalize().as_ref())
     }
 }

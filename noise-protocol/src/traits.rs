@@ -177,16 +177,11 @@ pub trait Hash: Default {
         Self::Output::len()
     }
 
-    /// Reset state of hash context.
-    fn reset(&mut self) {
-        *self = Default::default();
-    }
-
     /// Update hash context with some input.
     fn input(&mut self, data: &[u8]);
 
     /// Get hash result.
-    fn result(&mut self) -> Self::Output;
+    fn result(self) -> Self::Output;
 
     /// Calculate hash of some data.
     fn hash(data: &[u8]) -> Self::Output {
@@ -217,7 +212,7 @@ pub trait Hash: Default {
         }
         let inner_output = hasher.result();
 
-        hasher.reset();
+        hasher = Default::default();
         hasher.input(opad);
         hasher.input(inner_output.as_slice());
         hasher.result()
