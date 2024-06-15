@@ -25,14 +25,16 @@ pub struct HandshakeState<D: DH, C: Cipher, H: Hash> {
 impl<D, C, H> Clone for HandshakeState<D, C, H>
 where
     D: DH,
+    <D as DH>::Key: Clone,
     C: Cipher,
+    <C as Cipher>::Key: Clone,
     H: Hash,
 {
     fn clone(&self) -> Self {
         Self {
             symmetric: self.symmetric.clone(),
-            s: self.s.as_ref().map(U8Array::clone),
-            e: self.e.as_ref().map(U8Array::clone),
+            s: self.s.clone(),
+            e: self.e.clone(),
             rs: self.rs.as_ref().map(U8Array::clone),
             re: self.re.as_ref().map(U8Array::clone),
             is_initiator: self.is_initiator,

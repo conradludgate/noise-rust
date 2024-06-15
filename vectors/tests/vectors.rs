@@ -181,11 +181,21 @@ fn get_pattern_by_name(name: &str) -> Option<HandshakePattern> {
     PATTERNS.get(name).cloned()
 }
 
-fn to_dh<D>(k: &HexString) -> D::Key
-where
-    D: DH,
-{
-    D::Key::from_slice(k.as_ref())
+// fn to_dh<D>(k: &HexString) -> D::Key
+// where
+//     D: DH,
+// {
+//     D::Key::from_slice(k.as_ref())
+// }
+
+trait ToDh: DH {
+    fn from_hex(k: &HexString) -> Self::Key;
+}
+
+impl ToDh for crypto::X25519 {
+    fn from_hex(k: &HexString) -> Self::Key {
+        crypto::sensitive::Sensitive::from_slice(k)
+    }
 }
 
 fn to_pubkey<D>(k: &HexString) -> D::Pubkey
@@ -197,7 +207,8 @@ where
 
 fn verify_vector_with<D, C, H>(v: &Vector) -> bool
 where
-    D: DH,
+    D: ToDh,
+    <D as DH>::Key: Clone,
     C: Cipher,
     H: Hash,
 {
@@ -217,8 +228,8 @@ where
         pattern.clone(),
         true,
         v.init_prologue.as_ref(),
-        v.init_static.as_ref().map(to_dh::<D>),
-        Some(to_dh::<D>(&v.init_ephemeral)),
+        v.init_static.as_ref().map(D::from_hex),
+        Some(D::from_hex(&v.init_ephemeral)),
         v.init_remote_static.as_ref().map(to_pubkey::<D>),
         None,
     );
@@ -226,8 +237,8 @@ where
         pattern.clone(),
         false,
         v.resp_prologue.as_ref(),
-        v.resp_static.as_ref().map(to_dh::<D>),
-        v.resp_ephemeral.as_ref().map(to_dh::<D>),
+        v.resp_static.as_ref().map(D::from_hex),
+        v.resp_ephemeral.as_ref().map(D::from_hex),
         v.resp_remote_static.as_ref().map(to_pubkey::<D>),
         None,
     );
@@ -298,20 +309,21 @@ where
 
 fn verify_vector_fallback<D, C, H>(v: &Vector) -> bool
 where
-    D: DH,
+    D: ToDh,
+    <D as DH>::Key: Clone,
     C: Cipher,
     H: Hash,
 {
     assert_eq!(v.parse_protocol_name().0, "IK");
 
     let iprologue = v.init_prologue.as_ref();
-    let ie = to_dh::<D>(&v.init_ephemeral);
-    let is = to_dh::<D>(v.init_static.as_ref().unwrap());
+    let ie = D::from_hex(&v.init_ephemeral);
+    let is = D::from_hex(v.init_static.as_ref().unwrap());
     let irs = to_pubkey::<D>(v.init_remote_static.as_ref().unwrap());
 
     let rprologue = v.resp_prologue.as_ref();
-    let re = to_dh::<D>(v.resp_ephemeral.as_ref().unwrap());
-    let rs = to_dh::<D>(v.resp_static.as_ref().unwrap());
+    let re = D::from_hex(v.resp_ephemeral.as_ref().unwrap());
+    let rs = D::from_hex(v.resp_static.as_ref().unwrap());
 
     // Build init handshake state.
     let mut ibuilder = HandshakeStateBuilder::<D>::new();

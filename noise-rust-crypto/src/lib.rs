@@ -59,6 +59,14 @@ impl Cipher for ChaCha20Poly1305 {
 
     type Key = Sensitive<[u8; 32]>;
 
+    fn key_len() -> usize {
+        32
+    }
+
+    fn key_from_slice(b: &[u8]) -> Self::Key {
+        Sensitive::from_slice(b)
+    }
+
     fn encrypt(k: &Self::Key, nonce: u64, ad: &[u8], plaintext: &[u8], out: &mut [u8]) {
         assert!(plaintext.len().checked_add(16) == Some(out.len()));
 
@@ -156,6 +164,14 @@ impl Cipher for Aes256Gcm {
     }
 
     type Key = Sensitive<[u8; 32]>;
+
+    fn key_len() -> usize {
+        32
+    }
+
+    fn key_from_slice(b: &[u8]) -> Self::Key {
+        Sensitive::from_slice(b)
+    }
 
     fn encrypt(k: &Self::Key, nonce: u64, ad: &[u8], plaintext: &[u8], out: &mut [u8]) {
         assert!(plaintext.len().checked_add(16) == Some(out.len()));

@@ -2,6 +2,7 @@ use noise_protocol::U8Array;
 use zeroize::{Zeroize, Zeroizing};
 
 /// Struct holding a value that is safely zeroed on drop.
+#[derive(Clone)]
 pub struct Sensitive<A: U8Array + Zeroize>(Zeroizing<A>);
 
 impl<A: U8Array + Zeroize> Sensitive<A> {

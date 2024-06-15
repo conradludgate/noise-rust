@@ -1,7 +1,6 @@
 #![no_std]
 
 pub mod sensitive;
-use sensitive::Sensitive;
 
 use noise_protocol::{Cipher, Hash};
 use ring::{
@@ -81,17 +80,22 @@ impl Cipher for ChaCha20Poly1305 {
         "ChaChaPoly"
     }
 
-    type Key = Sensitive<[u8; 32]>;
+    type Key = LessSafeKey;
 
-    fn encrypt(k: &Self::Key, nonce: u64, ad: &[u8], plaintext: &[u8], out: &mut [u8]) {
+    fn key_len() -> usize {
+        aead::CHACHA20_POLY1305.key_len()
+    }
+
+    fn key_from_slice(b: &[u8]) -> Self::Key {
+        LessSafeKey::new(UnboundKey::new(&aead::CHACHA20_POLY1305, b).unwrap())
+    }
+
+    fn encrypt(key: &Self::Key, nonce: u64, ad: &[u8], plaintext: &[u8], out: &mut [u8]) {
         assert!(plaintext.len().checked_add(TAGLEN) == Some(out.len()));
 
         let mut nonce_bytes = [0u8; 12];
         nonce_bytes[4..].copy_from_slice(&nonce.to_le_bytes());
         let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
-
-        let key =
-            LessSafeKey::new(UnboundKey::new(&aead::CHACHA20_POLY1305, k.as_slice()).unwrap());
 
         let (in_out, tag_out) = out.split_at_mut(plaintext.len());
         in_out.copy_from_slice(plaintext);
@@ -103,7 +107,7 @@ impl Cipher for ChaCha20Poly1305 {
     }
 
     fn encrypt_in_place(
-        k: &Self::Key,
+        key: &Self::Key,
         nonce: u64,
         ad: &[u8],
         in_out: &mut [u8],
@@ -117,9 +121,6 @@ impl Cipher for ChaCha20Poly1305 {
         nonce_bytes[4..].copy_from_slice(&nonce.to_le_bytes());
         let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
 
-        let key =
-            LessSafeKey::new(UnboundKey::new(&aead::CHACHA20_POLY1305, k.as_slice()).unwrap());
-
         let (in_out, tag_out) = in_out[..plaintext_len + TAGLEN].split_at_mut(plaintext_len);
         let tag = key
             .seal_in_place_separate_tag(nonce, aead::Aad::from(ad), in_out)
@@ -130,7 +131,7 @@ impl Cipher for ChaCha20Poly1305 {
     }
 
     fn decrypt(
-        k: &Self::Key,
+        key: &Self::Key,
         nonce: u64,
         ad: &[u8],
         ciphertext: &[u8],
@@ -142,8 +143,6 @@ impl Cipher for ChaCha20Poly1305 {
         nonce_bytes[4..].copy_from_slice(&nonce.to_le_bytes());
         let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
 
-        let key =
-            LessSafeKey::new(UnboundKey::new(&aead::CHACHA20_POLY1305, k.as_slice()).unwrap());
         let mut in_out = ciphertext.to_vec();
 
         let out0 = key
@@ -155,7 +154,7 @@ impl Cipher for ChaCha20Poly1305 {
     }
 
     fn decrypt_in_place(
-        k: &Self::Key,
+        key: &Self::Key,
         nonce: u64,
         ad: &[u8],
         in_out: &mut [u8],
@@ -168,8 +167,6 @@ impl Cipher for ChaCha20Poly1305 {
         nonce_bytes[4..].copy_from_slice(&nonce.to_le_bytes());
         let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
 
-        let key =
-            LessSafeKey::new(UnboundKey::new(&aead::CHACHA20_POLY1305, k.as_slice()).unwrap());
         key.open_in_place(nonce, aead::Aad::from(ad), &mut in_out[..ciphertext_len])
             .map_err(|_| ())?;
 
@@ -184,16 +181,22 @@ impl Cipher for Aes256Gcm {
         "AESGCM"
     }
 
-    type Key = Sensitive<[u8; 32]>;
+    type Key = LessSafeKey;
 
-    fn encrypt(k: &Self::Key, nonce: u64, ad: &[u8], plaintext: &[u8], out: &mut [u8]) {
+    fn key_len() -> usize {
+        aead::AES_256_GCM.key_len()
+    }
+
+    fn key_from_slice(b: &[u8]) -> Self::Key {
+        LessSafeKey::new(UnboundKey::new(&aead::AES_256_GCM, b).unwrap())
+    }
+
+    fn encrypt(key: &Self::Key, nonce: u64, ad: &[u8], plaintext: &[u8], out: &mut [u8]) {
         assert!(plaintext.len().checked_add(TAGLEN) == Some(out.len()));
 
         let mut nonce_bytes = [0u8; 12];
         nonce_bytes[4..].copy_from_slice(&nonce.to_be_bytes());
         let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
-
-        let key = LessSafeKey::new(UnboundKey::new(&aead::AES_256_GCM, k.as_slice()).unwrap());
 
         let (in_out, tag_out) = out.split_at_mut(plaintext.len());
         in_out.copy_from_slice(plaintext);
@@ -205,7 +208,7 @@ impl Cipher for Aes256Gcm {
     }
 
     fn encrypt_in_place(
-        k: &Self::Key,
+        key: &Self::Key,
         nonce: u64,
         ad: &[u8],
         in_out: &mut [u8],
@@ -219,8 +222,6 @@ impl Cipher for Aes256Gcm {
         nonce_bytes[4..].copy_from_slice(&nonce.to_be_bytes());
         let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
 
-        let key = LessSafeKey::new(UnboundKey::new(&aead::AES_256_GCM, k.as_slice()).unwrap());
-
         let (in_out, tag_out) = in_out[..plaintext_len + TAGLEN].split_at_mut(plaintext_len);
         let tag = key
             .seal_in_place_separate_tag(nonce, aead::Aad::from(ad), in_out)
@@ -231,7 +232,7 @@ impl Cipher for Aes256Gcm {
     }
 
     fn decrypt(
-        k: &Self::Key,
+        key: &Self::Key,
         nonce: u64,
         ad: &[u8],
         ciphertext: &[u8],
@@ -243,7 +244,6 @@ impl Cipher for Aes256Gcm {
         nonce_bytes[4..].copy_from_slice(&nonce.to_be_bytes());
         let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
 
-        let key = LessSafeKey::new(UnboundKey::new(&aead::AES_256_GCM, k.as_slice()).unwrap());
         let mut in_out = ciphertext.to_vec();
 
         let out0 = key
@@ -255,7 +255,7 @@ impl Cipher for Aes256Gcm {
     }
 
     fn decrypt_in_place(
-        k: &Self::Key,
+        key: &Self::Key,
         nonce: u64,
         ad: &[u8],
         in_out: &mut [u8],
@@ -268,7 +268,6 @@ impl Cipher for Aes256Gcm {
         nonce_bytes[4..].copy_from_slice(&nonce.to_be_bytes());
         let nonce = aead::Nonce::assume_unique_for_key(nonce_bytes);
 
-        let key = LessSafeKey::new(UnboundKey::new(&aead::AES_256_GCM, k.as_slice()).unwrap());
         key.open_in_place(nonce, aead::Aad::from(ad), &mut in_out[..ciphertext_len])
             .map_err(|_| ())?;
 

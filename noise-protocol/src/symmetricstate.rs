@@ -11,6 +11,7 @@ pub struct SymmetricState<C: Cipher, H: Hash> {
 impl<C, H> Clone for SymmetricState<C, H>
 where
     C: Cipher,
+    <C as Cipher>::Key: Clone,
     H: Hash,
 {
     fn clone(&self) -> Self {

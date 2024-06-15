@@ -18,6 +18,7 @@ pub struct CipherState<C: Cipher> {
 impl<C> Clone for CipherState<C>
 where
     C: Cipher,
+    <C as Cipher>::Key: Clone,
 {
     fn clone(&self) -> Self {
         Self {
@@ -39,7 +40,7 @@ where
     /// Create a new `CipherState` with a `key` and a nonce `n`.
     pub fn new(key: &[u8], n: u64) -> Self {
         CipherState {
-            key: C::Key::from_slice(key),
+            key: C::key_from_slice(key),
             n,
         }
     }

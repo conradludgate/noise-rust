@@ -62,7 +62,7 @@ impl_array!(128);
 /// A DH.
 pub trait DH {
     /// Type of private key.
-    type Key: U8Array;
+    type Key;
     /// Type of pubkey key.
     type Pubkey: U8Array;
     /// Type of output.
@@ -86,12 +86,12 @@ pub trait Cipher {
     /// Name of this cipher function.
     fn name() -> &'static str;
     /// Type of key.
-    type Key: U8Array;
+    type Key;
 
     /// Length of key.
-    fn key_len() -> usize {
-        Self::Key::len()
-    }
+    fn key_len() -> usize;
+
+    fn key_from_slice(b: &[u8]) -> Self::Key;
 
     /// Length of auth tag.
     ///
@@ -153,7 +153,7 @@ pub trait Cipher {
         // XXX: `k1` is not zeroed.
         let mut k1 = [0u8; 48];
         Self::encrypt(k, 0u64.wrapping_sub(1), &[], &[0; 32], &mut k1);
-        Self::Key::from_slice(&k1[..32])
+        Self::key_from_slice(&k1[..32])
     }
 }
 
