@@ -92,7 +92,7 @@ struct Vector {
 
 impl Vector {
     /// Parse protocol name and returns pattern, dh, cipher and hash names.
-    fn parse_protocol_name<'a>(&'a self) -> (&'a str, &'a str, &'a str, &'a str) {
+    fn parse_protocol_name(&self) -> (&str, &str, &str, &str) {
         lazy_static! {
             static ref RE: Regex =
                 Regex::new(r"Noise_([[:alnum:]\+]+)_([[:alnum:]]+)_([[:alnum:]]+)_([[:alnum:]]+)")
@@ -250,10 +250,10 @@ where
     let mut resp_ciphers = None;
 
     for psk in &v.init_psks {
-        h_i.push_psk(&psk);
+        h_i.push_psk(psk);
     }
     for psk in &v.resp_psks {
-        h_r.push_psk(&psk);
+        h_r.push_psk(psk);
     }
 
     for m in &v.messages {
@@ -267,8 +267,8 @@ where
                 } else {
                     (&mut h_r, &mut h_i)
                 };
-                assert_eq!(h_send.is_write_turn(), true);
-                assert_eq!(h_recv.is_write_turn(), false);
+                assert!(h_send.is_write_turn());
+                assert!(!h_recv.is_write_turn());
                 let overhead = h_send.get_next_message_overhead();
                 assert_eq!(payload.len() + overhead, expected_ciphertext.len());
                 let c = h_send.write_message_vec(payload).unwrap();
@@ -285,18 +285,16 @@ where
                 }
                 handshake_completed = true;
             }
+        } else if init_send {
+            let c = init_ciphers.as_mut().unwrap().0.encrypt_vec(payload);
+            assert_eq!(c, expected_ciphertext);
+            let p1 = resp_ciphers.as_mut().unwrap().0.decrypt_vec(&c).unwrap();
+            assert_eq!(p1, payload);
         } else {
-            if init_send {
-                let c = init_ciphers.as_mut().unwrap().0.encrypt_vec(payload);
-                assert_eq!(c, expected_ciphertext);
-                let p1 = resp_ciphers.as_mut().unwrap().0.decrypt_vec(&c).unwrap();
-                assert_eq!(p1, payload);
-            } else {
-                let c = resp_ciphers.as_mut().unwrap().1.encrypt_vec(payload);
-                assert_eq!(c, expected_ciphertext);
-                let p1 = init_ciphers.as_mut().unwrap().1.decrypt_vec(&c).unwrap();
-                assert_eq!(p1, payload);
-            }
+            let c = resp_ciphers.as_mut().unwrap().1.encrypt_vec(payload);
+            assert_eq!(c, expected_ciphertext);
+            let p1 = init_ciphers.as_mut().unwrap().1.decrypt_vec(&c).unwrap();
+            assert_eq!(p1, payload);
         }
         // Let the peer send if not a one-way pattern.
         if !pattern.is_one_way() {
@@ -329,7 +327,7 @@ where
     let mut ibuilder = HandshakeStateBuilder::<D>::new();
     ibuilder.set_is_initiator(true);
     ibuilder.set_pattern(noise_ik());
-    ibuilder.set_prologue(&iprologue);
+    ibuilder.set_prologue(iprologue);
     ibuilder.set_e(ie.clone());
     ibuilder.set_s(is.clone());
     ibuilder.set_rs(irs);
@@ -339,7 +337,7 @@ where
     let mut rbuilder = HandshakeStateBuilder::<D>::new();
     rbuilder.set_is_initiator(false);
     rbuilder.set_pattern(noise_ik());
-    rbuilder.set_prologue(&rprologue);
+    rbuilder.set_prologue(rprologue);
     rbuilder.set_s(rs.clone());
     rbuilder.set_e(re.clone());
     let mut rh0 = rbuilder.build_handshake_state::<C, H>();
@@ -356,7 +354,7 @@ where
     let mut ibuilder = HandshakeStateBuilder::<D>::new();
     ibuilder.set_is_initiator(true);
     ibuilder.set_pattern(noise_xx_fallback());
-    ibuilder.set_prologue(&rprologue);
+    ibuilder.set_prologue(rprologue);
     ibuilder.set_e(re);
     ibuilder.set_s(rs);
     ibuilder.set_re(rh0.get_re().unwrap());
@@ -366,7 +364,7 @@ where
     let mut rbuilder = HandshakeStateBuilder::<D>::new();
     rbuilder.set_is_initiator(false);
     rbuilder.set_pattern(noise_xx_fallback());
-    rbuilder.set_prologue(&iprologue);
+    rbuilder.set_prologue(iprologue);
     rbuilder.set_s(is);
     rbuilder.set_e(ie);
     let mut rh1 = rbuilder.build_handshake_state::<C, H>();
@@ -407,7 +405,7 @@ where
 
         let payload = m.payload.as_ref();
 
-        let c = send.encrypt_vec(&payload);
+        let c = send.encrypt_vec(payload);
         assert_eq!(c, m.ciphertext.as_ref());
 
         let m1 = recv.decrypt_vec(&c).unwrap();
