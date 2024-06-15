@@ -70,7 +70,7 @@ impl core::fmt::Display for Unspecified {
     }
 }
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "std")]
 impl std::error::Error for Unspecified {}
 
 

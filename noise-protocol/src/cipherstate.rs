@@ -1,6 +1,6 @@
 use crate::traits::{Cipher, Unspecified};
 
-#[cfg(feature = "use_alloc")]
+#[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
 /// A `CipherState` can encrypt and decrypt data.
@@ -53,7 +53,7 @@ where
     /// AEAD encryption.
     pub fn encrypt_ad(&mut self, authtext: &[u8], plaintext: &[u8], out: &mut [u8]) {
         C::encrypt(&self.key, self.n, authtext, plaintext, out);
-        #[cfg(feature = "use_std")]
+        #[cfg(feature = "alloc")]
         if option_env!("NOISE_RUST_TEST_IN_PLACE").is_some() {
             let mut inout = plaintext.to_vec();
             inout.extend_from_slice(&[0; 16]);
@@ -86,7 +86,7 @@ where
         out: &mut [u8],
     ) -> Result<(), Unspecified> {
         let r = C::decrypt(&self.key, self.n, authtext, ciphertext, out);
-        #[cfg(feature = "use_std")]
+        #[cfg(feature = "alloc")]
         if option_env!("NOISE_RUST_TEST_IN_PLACE").is_some() {
             let mut inout = ciphertext.to_vec();
             let r2 = C::decrypt_in_place(&self.key, self.n, authtext, &mut inout, ciphertext.len());
@@ -123,7 +123,7 @@ where
     }
 
     /// Encryption, returns ciphertext as `Vec<u8>`.
-    #[cfg(any(feature = "use_std", feature = "use_alloc"))]
+    #[cfg(feature = "alloc")]
     pub fn encrypt_vec(&mut self, plaintext: &[u8]) -> Vec<u8> {
         let mut out = vec![0u8; plaintext.len() + 16];
         self.encrypt(plaintext, &mut out);
@@ -145,7 +145,7 @@ where
     }
 
     /// Decryption, returns plaintext as `Vec<u8>`.
-    #[cfg(any(feature = "use_std", feature = "use_alloc"))]
+    #[cfg(feature = "alloc")]
     pub fn decrypt_vec(&mut self, ciphertext: &[u8]) -> Result<Vec<u8>, Unspecified> {
         if ciphertext.len() < 16 {
             return Err(Unspecified);

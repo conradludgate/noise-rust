@@ -5,7 +5,7 @@ use crate::traits::{Cipher, Hash, U8Array, Unspecified, DH};
 use arrayvec::{ArrayString, ArrayVec};
 use core::fmt::{Display, Error as FmtError, Formatter, Write};
 
-#[cfg(feature = "use_alloc")]
+#[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
 /// Noise handshake state.
@@ -192,7 +192,7 @@ where
     }
 
     /// Like [`write_message`](HandshakeState::write_message), but returns a [`Vec`].
-    #[cfg(any(feature = "use_std", feature = "use_alloc"))]
+    #[cfg(feature = "alloc")]
     pub fn write_message_vec(&mut self, payload: &[u8]) -> Result<Vec<u8>, Error> {
         let mut out = vec![0u8; payload.len() + self.get_next_message_overhead()];
         self.write_message(payload, &mut out)?;
@@ -370,7 +370,7 @@ where
     /// In addition to possible errors from
     /// [`read_message`](HandshakeState::read_message),
     /// [TooShort](ErrorKind::TooShort) may be returned.
-    #[cfg(any(feature = "use_std", feature = "use_alloc"))]
+    #[cfg(feature = "alloc")]
     pub fn read_message_vec(&mut self, data: &[u8]) -> Result<Vec<u8>, Error> {
         let overhead = self.get_next_message_overhead();
         if data.len() < overhead {
@@ -521,7 +521,7 @@ impl Display for Error {
     }
 }
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "std")]
 impl ::std::error::Error for Error {
     fn description(&self) -> &'static str {
         match self.kind {

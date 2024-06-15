@@ -20,7 +20,7 @@
 //! implementing the [`DH`], [`Cipher`] and [`Hash`] traits.
 
 #![warn(missing_docs)]
-#![cfg_attr(not(feature = "use_std"), no_std)]
+#![no_std]
 
 mod cipherstate;
 mod handshakepattern;
@@ -28,9 +28,12 @@ mod handshakestate;
 mod symmetricstate;
 mod traits;
 
-#[cfg(feature = "use_alloc")]
-#[macro_use]
+#[cfg(feature = "alloc")]
 extern crate alloc;
+
+#[cfg(feature = "std")]
+#[macro_use]
+extern crate std;
 
 pub use crate::cipherstate::CipherState;
 pub use crate::traits::{Cipher, Hash, U8Array, DH, Unspecified};
